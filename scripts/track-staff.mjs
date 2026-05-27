@@ -1,3 +1,23 @@
+import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+/* Charge .env.tracking si les vars ne sont pas déjà dans l'environnement */
+const __dir = dirname(fileURLToPath(import.meta.url));
+const envPath = resolve(__dir, "../.env.tracking");
+try {
+  const lines = readFileSync(envPath, "utf8").split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const idx = trimmed.indexOf("=");
+    if (idx === -1) continue;
+    const key = trimmed.slice(0, idx).trim();
+    const val = trimmed.slice(idx + 1).trim();
+    if (!process.env[key]) process.env[key] = val;
+  }
+} catch { /* pas de .env.tracking = on utilise les vars système */ }
+
 const STAFF    = ["ixtazzking", "Orionyx84"];
 const NG_API   = "https://publicapi.nationsglory.fr";
 const KV_URL   = process.env.UPSTASH_REDIS_REST_URL;
@@ -33,7 +53,14 @@ const now = Date.now();
 for (const username of STAFF) {
   try {
     const res = await fetch(`${NG_API}/user/${username}`, {
-      headers: { Authorization: `Bearer ${API_KEY}` },
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+        "Origin": "https://nationsglory.fr",
+        "Referer": "https://nationsglory.fr/",
+      },
     });
 
     if (!res.ok) {

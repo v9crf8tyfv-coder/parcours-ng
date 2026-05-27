@@ -49,5 +49,35 @@ export async function GET(req: NextRequest) {
     results.skinDirect = { error: String(err) };
   }
 
+  /* Test KV Upstash */
+  const kvUrl   = process.env.UPSTASH_REDIS_REST_URL ?? "";
+  const kvToken = process.env.UPSTASH_REDIS_REST_TOKEN ?? "";
+  results.kvAvailable = Boolean(kvUrl && kvToken);
+
+  if (results.kvAvailable) {
+    try {
+      const weekId = new Date().toISOString().slice(0, 4) + "-W" +
+        String(Math.ceil((Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000) + 1) / 7)).padStart(2, "0");
+
+      const kvRes = await fetch(kvUrl, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify(["GET", `staff:ixtazzking:sessions:${weekId}`]),
+      });
+      const kvData = await kvRes.json();
+      results.kvSessions = { weekId, raw: kvData.result };
+
+      const onlineRes = await fetch(kvUrl, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify(["GET", "staff:ixtazzking:online"]),
+      });
+      const onlineData = await onlineRes.json();
+      results.kvOnline = onlineData.result;
+    } catch (err) {
+      results.kvError = String(err);
+    }
+  }
+
   return NextResponse.json(results);
 }
