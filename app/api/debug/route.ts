@@ -56,24 +56,37 @@ export async function GET(req: NextRequest) {
 
   if (results.kvAvailable) {
     try {
-      const weekId = new Date().toISOString().slice(0, 4) + "-W" +
-        String(Math.ceil((Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000) + 1) / 7)).padStart(2, "0");
+      const kv = async (cmd: unknown[]) => {
+        const r = await fetch(kvUrl, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify(cmd),
+        });
+        return (await r.json()).result;
+      };
 
-      const kvRes = await fetch(kvUrl, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify(["GET", `staff:ixtazzking:sessions:${weekId}`]),
-      });
-      const kvData = await kvRes.json();
-      results.kvSessions = { weekId, raw: kvData.result };
+      /* Calcul ISO week correct */
+      const d = new Date();
+      d.setHours(0,0,0,0);
+      d.setDate(d.getDate() + 3 - ((d.getDay()+6)%7));
+      const w1 = new Date(d.getFullYear(), 0, 4);
+      const wn = 1 + Math.round(((d.getTime()-w1.getTime())/86400000 - 3 + ((w1.getDay()+6)%7))/7);
+      const weekId = `${d.getFullYear()}-W${String(wn).padStart(2,"0")}`;
 
-      const onlineRes = await fetch(kvUrl, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify(["GET", "staff:ixtazzking:online"]),
-      });
-      const onlineData = await onlineRes.json();
-      results.kvOnline = onlineData.result;
+      const [sessionsRaw, onlineIxt, sessionStartIxt, onlineOry] = await Promise.all([
+        kv(["GET", `staff:ixtazzking:sessions:${weekId}`]),
+        kv(["GET", "staff:ixtazzking:online"]),
+        kv(["GET", "staff:ixtazzking:session_start"]),
+        kv(["GET", "staff:Orionyx84:online"]),
+      ]);
+
+      results.kv = {
+        weekId,
+        sessions: sessionsRaw ? JSON.parse(sessionsRaw) : [],
+        ixtazzking_online: onlineIxt ? JSON.parse(onlineIxt) : null,
+        ixtazzking_session_start: sessionStartIxt ? JSON.parse(sessionStartIxt) : null,
+        orionyx84_online: onlineOry ? JSON.parse(onlineOry) : null,
+      };
     } catch (err) {
       results.kvError = String(err);
     }
