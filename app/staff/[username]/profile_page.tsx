@@ -184,7 +184,7 @@ export default function ProfilePage({ username }: { username: string }) {
               border: `2px solid ${player.gradeColor}`,
               borderRadius: 8, overflow: "hidden", flexShrink: 0,
             }}>
-              <NgHead username={player.username} size={44} />
+              <NgHead username={player.username} size={36} />
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{
