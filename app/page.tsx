@@ -1,290 +1,405 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-/* ================= FORMAT DATE ================= */
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
-
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  const hours = String(d.getHours()).padStart(2, "0");
-  const mins = String(d.getMinutes()).padStart(2, "0");
-
-  return `${day}/${month}/${year} à ${hours}h${mins}`;
-}
-
-/* ================= DATA ================= */
-const staffWhite = [
+/* ─── CONFIG SERVEURS ─────────────────────────────────────────
+   Pour ajouter un serveur : copie une ligne et change les valeurs.
+   - id       : le nom dans l'URL (ex: /serveurs/white)
+   - name     : ce qui s'affiche sur la carte
+   - color    : la couleur principale de la carte
+   - logo     : chemin vers l'image dans public/logos/
+   - available: true = cliquable, false = grisé "bientôt"
+   ────────────────────────────────────────────────────────────── */
+const servers = [
   {
-    title: "Modérateur Test White",
-    start: "2025-07-06 18:34",
-    end: "2025-08-17 17:40",
-    logo: "/logos/modo_test.png",
+    id: "white",
+    name: "White",
+    color: "#ffffff",
+    glow: "rgba(255,255,255,0.25)",
+    logo: "/logos/serveurwhite.png",
+    description: "Serveur principal",
+    available: true,
   },
   {
-    title: "Modérateur Confirmé",
-    start: "2025-08-17 17:40",
-    end: "2026-05-03 21:39",
-    logo: "/logos/modo.png",
+    id: "blue",
+    name: "Blue",
+    color: "#378add",
+    glow: "rgba(55,138,221,0.3)",
+    logo: "/logos/serveurblue.png",
+    description: "Bientôt disponible",
+    available: false,
   },
   {
-    title: "Modérateur Réserviste",
-    start: "2026-05-03 21:39",
-    end: null,
-    logo: "/logos/modo.png",
-  },
-];
-
-const comWhite = [
-  {
-    title: "Journaliste White",
-    start: "2025-08-03 17:12",
-  },
-  {
-    title: "Journaliste Indépendant",
-    start: "2025-09-22 00:00",
+    id: "gold",
+    name: "Gold",
+    color: "#ef9f27",
+    glow: "rgba(239,159,39,0.3)",
+    logo: "/logos/serveurgold.png",
+    description: "Bientôt disponible",
+    available: false,
   },
 ];
-
-/* ================= LIVE ================= */
-function LiveBadge() {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <span
-        style={{
-          width: 7,
-          height: 7,
-          borderRadius: "50%",
-          background: "#22c55e",
-          animation: "pulse 2s infinite",
-        }}
-      />
-      <span
-        style={{
-          color: "#22c55e",
-          fontWeight: 700,
-          fontSize: 12,
-          animation: "pulse 2s infinite",
-        }}
-      >
-        LIVE
-      </span>
-    </div>
-  );
-}
 
 export default function Home() {
-  const [now, setNow] = useState(Date.now());
-
-  const head = "https://mc-heads.net/avatar/ixtazzking/120";
-
-  useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 60000);
-    return () => clearInterval(interval);
-  }, []);
+  const router = useRouter();
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
   return (
     <main
       style={{
-        background: "radial-gradient(circle at top, #1a0b2e, #000000)",
-        color: "white",
         minHeight: "100vh",
-        padding: 40,
-        fontFamily: "Arial",
+        background: "radial-gradient(ellipse at top, #0d0618 0%, #000000 60%)",
+        color: "white",
+        fontFamily: "'Segoe UI', Arial, sans-serif",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      {/* ================= HERO ================= */}
+      {/* ── Grille de fond ── */}
       <div
         style={{
-          textAlign: "center",
-          marginBottom: 60,
+          position: "fixed",
+          inset: 0,
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)",
+          backgroundSize: "56px 56px",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* ── Header ── */}
+      <header
+        style={{
+          position: "relative",
+          zIndex: 2,
+          padding: "28px 36px",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <img
+          src="/logos/nationsglory.png"
+          alt="NationsGlory"
+          style={{ width: 30, height: 30, objectFit: "contain" }}
+          onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+        />
+        <span style={{ fontSize: 17, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>
+          NationsGlory
+        </span>
+        <span
+          style={{
+            fontSize: 11,
+            letterSpacing: 2,
+            color: "rgba(255,255,255,0.25)",
+            textTransform: "uppercase",
+          }}
+        >
+          Dashboard informatif
+        </span>
+      </header>
+
+      {/* ── Contenu central ── */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          flex: 1,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 18,
+          justifyContent: "center",
+          padding: "20px 24px 80px",
         }}
       >
-        <h1 style={{ fontSize: 52 }}>ixtazzking</h1>
+        {/* Bouton Suivi Staff */}
+        <div style={{ marginBottom: 40, display: "flex", justifyContent: "center" }}>
+          <button
+            onClick={() => router.push("/staff")}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = "rgba(26,107,60,0.15)";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "#1a6b3c80";
+              (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 10px 30px rgba(26,107,60,0.15)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.03)";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.07)";
+              (e.currentTarget as HTMLButtonElement).style.transform = "none";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+            }}
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: 10, padding: "10px 22px",
+              color: "rgba(255,255,255,0.6)", fontSize: 13,
+              cursor: "pointer", transition: "all 0.25s",
+              display: "flex", alignItems: "center", gap: 8,
+              fontFamily: "'Segoe UI', system-ui, Arial, sans-serif",
+            }}
+          >
+            <span
+              style={{
+                width: 7, height: 7, borderRadius: "50%",
+                background: "#22c55e",
+                boxShadow: "0 0 6px #22c55e",
+                display: "inline-block", flexShrink: 0,
+              }}
+            />
+            <span>Suivi Staff White</span>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>→</span>
+          </button>
+        </div>
 
-        {/* ================= AVATAR + CASE AJOUTÉE ================= */}
+        {/* Titre */}
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <p
+            style={{
+              fontSize: 11,
+              letterSpacing: 4,
+              textTransform: "uppercase",
+              color: "rgba(167,139,250,0.7)",
+              marginBottom: 14,
+              fontWeight: 500,
+            }}
+          >
+            Sélectionne ton serveur
+          </p>
+          <h1
+            style={{
+              fontSize: "clamp(28px, 5vw, 48px)",
+              fontWeight: 800,
+              letterSpacing: "-1.5px",
+              margin: 0,
+              lineHeight: 1.15,
+              background:
+                "linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.55) 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Quel serveur veux-tu
+            <br />
+            consulter ?
+          </h1>
+        </div>
+
+        {/* ── Cartes serveurs ── */}
         <div
           style={{
-            width: 130,
-            height: 130,
-            borderRadius: 20,
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.15)",
             display: "flex",
-            alignItems: "center",
+            gap: 20,
+            flexWrap: "wrap",
             justifyContent: "center",
+            maxWidth: 700,
           }}
         >
+          {servers.map((s) => {
+            const isHovered = hovered === s.id;
+            const hasLogo = !imgErrors[s.id];
+            const dimmed = !s.available;
+
+            return (
+              <div
+                key={s.id}
+                onClick={() => s.available && router.push(`/serveurs/${s.id}`)}
+                onMouseEnter={() => s.available && setHovered(s.id)}
+                onMouseLeave={() => setHovered(null)}
+                style={{
+                  width: 190,
+                  borderRadius: 20,
+                  padding: "26px 20px 22px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 12,
+                  position: "relative",
+                  overflow: "hidden",
+                  cursor: s.available ? "pointer" : "default",
+                  opacity: dimmed ? 0.35 : 1,
+                  background: isHovered
+                    ? `rgba(${hexToRgb(s.color)}, 0.1)`
+                    : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${
+                    isHovered
+                      ? `rgba(${hexToRgb(s.color)}, 0.5)`
+                      : "rgba(255,255,255,0.07)"
+                  }`,
+                  transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+                  transform: isHovered
+                    ? "translateY(-6px) scale(1.03)"
+                    : "translateY(0) scale(1)",
+                  boxShadow: isHovered
+                    ? `0 20px 60px ${s.glow}`
+                    : "none",
+                }}
+              >
+                {/* Halo au hover */}
+                {isHovered && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: -50,
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      width: 180,
+                      height: 180,
+                      background: `radial-gradient(ellipse, ${s.glow}, transparent 70%)`,
+                      pointerEvents: "none",
+                    }}
+                  />
+                )}
+
+                {/* Logo ou lettre de fallback */}
+                <div
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 16,
+                    background: `rgba(${hexToRgb(s.color)}, 0.08)`,
+                    border: `1px solid rgba(${hexToRgb(s.color)}, 0.2)`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                >
+                  {hasLogo ? (
+                    <img
+                      src={s.logo}
+                      alt={s.name}
+                      style={{ width: 44, height: 44, objectFit: "contain" }}
+                      onError={() =>
+                        setImgErrors((prev) => ({ ...prev, [s.id]: true }))
+                      }
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: 28,
+                        fontWeight: 800,
+                        color: s.color,
+                        opacity: 0.7,
+                      }}
+                    >
+                      {s.name[0]}
+                    </span>
+                  )}
+                </div>
+
+                {/* Nom + description */}
+                <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: 19,
+                      fontWeight: 700,
+                      letterSpacing: "-0.5px",
+                      color: dimmed ? "rgba(255,255,255,0.5)" : s.color,
+                    }}
+                  >
+                    {s.name}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: "rgba(255,255,255,0.35)",
+                      marginTop: 3,
+                    }}
+                  >
+                    {s.description}
+                  </div>
+                </div>
+
+                {/* Flèche */}
+                {s.available && (
+                  <div
+                    style={{
+                      fontSize: 16,
+                      color: `rgba(${hexToRgb(s.color)}, 0.6)`,
+                      transition: "transform 0.25s",
+                      transform: isHovered ? "translateX(5px)" : "translateX(0)",
+                      position: "relative",
+                      zIndex: 1,
+                    }}
+                  >
+                    →
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Signature en bas à droite ── */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 24,
+          right: 24,
+          zIndex: 10,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 5,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
           <img
-            src={head}
+            src="https://mc-heads.net/avatar/ixtazzking/24"
+            alt="ixtazzking"
             style={{
-              width: 100,
-              height: 100,
-              borderRadius: 18,
+              width: 20,
+              height: 20,
+              borderRadius: 4,
+              imageRendering: "pixelated",
             }}
           />
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
+            Développé par{" "}
+            <span style={{ color: "rgba(167,139,250,0.7)", fontWeight: 600 }}>
+              ixtazzking
+            </span>
+          </span>
         </div>
-
-        <p style={{ opacity: 0.6 }}>Parcours NationsGlory</p>
+        <button
+          onClick={() => router.push("/parcours")}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            fontSize: 10,
+            color: "rgba(167,139,250,0.55)",
+            textDecoration: "underline",
+            textDecorationColor: "rgba(167,139,250,0.3)",
+            transition: "color 0.2s",
+          }}
+          onMouseEnter={(e) =>
+            ((e.target as HTMLElement).style.color = "rgba(167,139,250,1)")
+          }
+          onMouseLeave={(e) =>
+            ((e.target as HTMLElement).style.color = "rgba(167,139,250,0.55)")
+          }
+        >
+          Voir le parcours →
+        </button>
       </div>
-
-      {/* ================= STAFF ================= */}
-      <div
-        style={{
-          width: "65%",
-          margin: "auto",
-          borderRadius: 20,
-          padding: 25,
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        <h2 style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 30 }}>
-          <img src="/logos/white.png" style={{ width: 28 }} />
-          Staff White
-        </h2>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {staffWhite.map((item, i) => {
-            const isLive = item.title === "Modérateur Réserviste";
-
-            const days = Math.floor(
-              ((item.end ? new Date(item.end).getTime() : now) -
-                new Date(item.start).getTime()) /
-                86400000
-            );
-
-            return (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "16px 20px",
-                  borderRadius: 14,
-                  background: "rgba(0,0,0,0.45)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <img src={item.logo} style={{ width: 28 }} />
-
-                  <div style={{ fontWeight: "bold" }}>{item.title}</div>
-
-                  {isLive && <LiveBadge />}
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ fontSize: 12, opacity: 0.7 }}>
-                    {formatDate(item.start)} →{" "}
-                    {item.end ? formatDate(item.end) : "en cours"}
-                  </div>
-
-                  <div
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: 10,
-                      background: isLive
-                        ? "rgba(34,197,94,0.2)"
-                        : "rgba(168,85,247,0.2)",
-                      border: isLive
-                        ? "1px solid #22c55e"
-                        : "1px solid #a855f7",
-                      color: isLive ? "#22c55e" : "#c084fc",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {days} jours
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ================= COM ================= */}
-      <div
-        style={{
-          width: "65%",
-          margin: "40px auto 0 auto",
-          borderRadius: 20,
-          padding: 25,
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        <h2 style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 30 }}>
-          <img src="/logos/journal.png" style={{ width: 28 }} />
-          Journal / Com White
-        </h2>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {comWhite.map((item, i) => {
-            const days = Math.floor(
-              (now - new Date(item.start).getTime()) / 86400000
-            );
-
-            const isLive =
-              item.title === "Journaliste White" ||
-              item.title === "Journaliste Indépendant";
-
-            return (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "16px 20px",
-                  borderRadius: 14,
-                  background: "rgba(0,0,0,0.45)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                <div style={{ fontWeight: "bold", display: "flex", alignItems: "center", gap: 10 }}>
-                  {item.title}
-                  {isLive && <LiveBadge />}
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ fontSize: 12, opacity: 0.7 }}>
-                    {formatDate(item.start)} → en cours
-                  </div>
-
-                  <div
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: 10,
-                      background: "rgba(34,197,94,0.2)",
-                      border: "1px solid #22c55e",
-                      color: "#22c55e",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {days} jours
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <style jsx>{`
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.3); opacity: 0.4; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-      `}</style>
     </main>
   );
+}
+
+/* ── Utilitaire : convertit "#ffffff" en "255,255,255" ── */
+function hexToRgb(hex: string): string {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `${r},${g},${b}`;
 }
