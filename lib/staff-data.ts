@@ -1,6 +1,8 @@
 export interface Session {
-  date: string;    // format "AAAA-MM-JJ"  ex: "2026-05-19"
-  minutes: number; // durée en minutes     ex: 90
+  date: string;       // format "AAAA-MM-JJ"  ex: "2026-05-19"
+  minutes: number;    // durée en minutes     ex: 90
+  startTime?: number; // timestamp ms (connexion détectée)
+  endTime?: number;   // timestamp ms (déconnexion détectée)
 }
 
 /* ─────────────────────────────────────────────────────────────────

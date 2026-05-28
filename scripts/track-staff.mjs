@@ -87,7 +87,7 @@ for (const username of STAFF) {
         const date     = new Date().toISOString().slice(0, 10);
         const key      = `staff:${username}:sessions:${weekId}`;
         const existing = (await kvGet(key)) ?? [];
-        existing.push({ date, minutes });
+        existing.push({ date, minutes, startTime: sessionStart, endTime: now });
         await kvSet(key, existing, 60 * 60 * 24 * 120);
         console.log(`${username}: session ${minutes} min enregistrée`);
       } else {

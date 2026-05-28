@@ -303,6 +303,17 @@ export default function ProfilePage({ username }: { username: string }) {
               >
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>
                   {formatDateFr(session.date)}
+                  {session.startTime && session.endTime && (
+                    <span style={{ marginLeft: 10, fontSize: 11 }}>
+                      <span style={{ color: "#22c55e", fontWeight: 600 }}>
+                        {new Date(session.startTime).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      <span style={{ color: "rgba(255,255,255,0.2)", margin: "0 4px" }}>→</span>
+                      <span style={{ color: "#ef4444", fontWeight: 600 }}>
+                        {new Date(session.endTime).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </span>
+                  )}
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>
                   {minutesToHM(session.minutes)}
