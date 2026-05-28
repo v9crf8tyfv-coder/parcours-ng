@@ -45,9 +45,8 @@ function TimeBadge({ start, end, now }: any) {
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-      <span style={{ fontSize: 11, opacity: 0.7 }}>{formatDate(start)}</span>
-      <span style={{ opacity: 0.5 }}>→</span>
-      <span style={{ fontSize: 11, opacity: 0.7, color: end ? "#c084fc" : "#22c55e" }}>
+      <span style={{ fontSize: 11, fontWeight: 600, color: "#22c55e" }}>{formatDate(start)}</span>
+      <span style={{ fontSize: 11, fontWeight: 600, color: end ? "#ef4444" : "#22c55e" }}>
         {end ? formatDate(end) : "en cours"}
       </span>
       <div style={{

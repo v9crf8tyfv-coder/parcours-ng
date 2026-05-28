@@ -33,7 +33,9 @@ async function kv(cmd) {
     headers: { Authorization: `Bearer ${KV_TOKEN}`, "Content-Type": "application/json" },
     body: JSON.stringify(cmd),
   });
-  return (await r.json()).result;
+  const json = await r.json();
+  if (json.error) console.error(`[KV] erreur:`, json.error, "| cmd:", cmd[0], cmd[1]);
+  return json.result;
 }
 const kvGet = async (k) => { const v = await kv(["GET", k]); return v ? JSON.parse(v) : null; };
 const kvSet = async (k, v, ex) => kv(ex ? ["SET", k, JSON.stringify(v), "EX", ex] : ["SET", k, JSON.stringify(v)]);
