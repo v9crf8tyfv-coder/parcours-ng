@@ -21,24 +21,49 @@ export async function GET(req: NextRequest) {
     timestamp: new Date().toISOString(),
   };
 
-  /* Test connexion API NG */
+  /* Test connexion API NG — supporte ?username=pseudo pour tester n'importe qui */
+  const testUsername = req.nextUrl.searchParams.get("username") ?? "ixtazzking";
   try {
-    const r = await fetch("https://publicapi.nationsglory.fr/user/ixtazzking", {
-      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+    const ngHeaders: Record<string, string> = apiKey ? {
+      Authorization: `Bearer ${apiKey}`,
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+      Accept: "application/json, text/plain, */*",
+      "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+      Origin: "https://nationsglory.fr",
+      Referer: "https://nationsglory.fr/",
+    } : {};
+    const r = await fetch(`https://publicapi.nationsglory.fr/user/${testUsername}`, {
+      headers: ngHeaders,
       cache: "no-store",
     });
     const text = await r.text();
     let json: unknown = null;
     try { json = JSON.parse(text); } catch {}
     results.ngApi = {
+      username: testUsername,
       status: r.status,
       ok: r.ok,
+      // Champs clés
+      serversRaw: (json as Record<string, unknown>)?.servers ?? null,
       skinFace: (json as { skin?: { face?: string } })?.skin?.face,
       skinHead: (json as { skin?: { head?: string } })?.skin?.head,
-      serversWhiteOnline: (json as { servers?: { white?: { online?: boolean } } })?.servers?.white?.online,
     };
   } catch (err) {
     results.ngApi = { error: String(err) };
+  }
+
+  /* Test endpoint playercount — token en query param (pas Bearer header) */
+  try {
+    const pcUrl = apiKey
+      ? `https://publicapi.nationsglory.fr/playercount?token=${encodeURIComponent(apiKey)}`
+      : "https://publicapi.nationsglory.fr/playercount";
+    const r = await fetch(pcUrl, { cache: "no-store" });
+    const text = await r.text();
+    let json: unknown = null;
+    try { json = JSON.parse(text); } catch {}
+    results.playercount = { status: r.status, ok: r.ok, raw: json };
+  } catch (err) {
+    results.playercount = { error: String(err) };
   }
 
   /* Test URL skin directe */
