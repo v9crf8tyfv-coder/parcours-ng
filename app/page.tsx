@@ -559,7 +559,7 @@ export default function Home() {
                           style={{
                             fontSize: 11.5,
                             fontWeight: 600,
-                            color: role.endDate ? "#f87171" : "#4ade80",
+                            color: role.endDate ? "#c084fc" : "#4ade80",
                           }}
                         >
                           {role.endDate ? formatDate(role.endDate) : "en cours"}
