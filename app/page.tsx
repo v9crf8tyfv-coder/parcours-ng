@@ -169,7 +169,7 @@ function SkinHead({ size }: { size: number }) {
           alignItems: "center",
           justifyContent: "center",
           fontSize: size * 0.45,
-          fontWeight: 800,
+          fontWeight: 400,
           color: "#c4b5fd",
         }}
       >
@@ -210,7 +210,7 @@ function RoleIcon({ src, alt, size }: { src: string; alt: string; size: number }
           alignItems: "center",
           justifyContent: "center",
           fontSize: size * 0.5,
-          fontWeight: 700,
+          fontWeight: 400,
           color: "rgba(255,255,255,0.55)",
           flexShrink: 0,
         }}
@@ -244,7 +244,7 @@ function StatusBadge({ active }: { active: boolean }) {
           border: "1px solid rgba(34,197,94,0.4)",
           color: "#4ade80",
           fontSize: 11,
-          fontWeight: 700,
+          fontWeight: 400,
         }}
       >
         <span
@@ -273,7 +273,7 @@ function StatusBadge({ active }: { active: boolean }) {
         border: "1px solid rgba(255,255,255,0.1)",
         color: "rgba(255,255,255,0.4)",
         fontSize: 11,
-        fontWeight: 600,
+        fontWeight: 400,
       }}
     >
       <span
@@ -386,7 +386,7 @@ export default function Home() {
           <h1
             style={{
               fontSize: isMobile ? 38 : 52,
-              fontWeight: 800,
+              fontWeight: 400,
               letterSpacing: "-1.5px",
               margin: 0,
               lineHeight: 1,
@@ -406,7 +406,7 @@ export default function Home() {
               letterSpacing: 3,
               textTransform: "uppercase",
               color: "rgba(167,139,250,0.8)",
-              fontWeight: 500,
+              fontWeight: 400,
             }}
           >
             {PROFILE.subtitle}
@@ -453,7 +453,7 @@ export default function Home() {
                     gap: 10,
                     margin: 0,
                     fontSize: isMobile ? 19 : 23,
-                    fontWeight: 700,
+                    fontWeight: 400,
                     letterSpacing: "-0.4px",
                   }}
                 >
@@ -469,7 +469,7 @@ export default function Home() {
                         padding: "4px 11px",
                         borderRadius: 999,
                         fontSize: 11.5,
-                        fontWeight: 600,
+                        fontWeight: 400,
                         background: "rgba(234,179,8,0.1)",
                         border: "1px solid rgba(234,179,8,0.35)",
                         color: "#facc15",
@@ -548,8 +548,7 @@ export default function Home() {
                         <span
                           style={{
                             fontSize: 11.5,
-                            fontWeight: 600,
-                            color: "#4ade80",
+                            color: role.endDate ? "#c084fc" : "#4ade80",
                           }}
                         >
                           {formatDate(role.startDate)}
@@ -558,7 +557,6 @@ export default function Home() {
                         <span
                           style={{
                             fontSize: 11.5,
-                            fontWeight: 600,
                             color: role.endDate ? "#c084fc" : "#4ade80",
                           }}
                         >
@@ -570,7 +568,7 @@ export default function Home() {
                             padding: "5px 11px",
                             borderRadius: 999,
                             fontSize: 12,
-                            fontWeight: 700,
+                            fontWeight: 400,
                             whiteSpace: "nowrap",
                             background: "rgba(168,85,247,0.13)",
                             border: "1px solid rgba(168,85,247,0.4)",
@@ -608,6 +606,23 @@ export default function Home() {
             </span>
           </span>
         </footer>
+      </div>
+
+      {/* Signature discrète */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 14,
+          right: 16,
+          fontSize: 11,
+          letterSpacing: 1,
+          color: "rgba(255,255,255,0.2)",
+          pointerEvents: "none",
+          userSelect: "none",
+          zIndex: 5,
+        }}
+      >
+        ᴅ.ɪ.ᴠ
       </div>
 
       {/* Animations légères */}
