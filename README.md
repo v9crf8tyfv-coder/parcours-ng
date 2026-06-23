@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Parcours NationsGlory — ixtazzking
 
-## Getting Started
+Site personnel **public** affichant le parcours NationsGlory White de `ixtazzking`
+(staff + journalisme/communication). Une seule page, sombre, responsive, sans dépendance externe.
 
-First, run the development server:
+Construit avec **Next.js 16** + **React 19**. Page 100 % statique → hébergeable gratuitement sur Vercel.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Modifier / ajouter un rôle
+
+Tout se passe en haut de [`app/page.tsx`](app/page.tsx), dans les tableaux `staffRoles`
+et `journalismRoles`. Chaque rôle :
+
+```ts
+{
+  title:     "Modérateur Confirmé",      // nom affiché
+  startDate: "2025-08-17 17:40",          // "AAAA-MM-JJ HH:MM"
+  endDate:   "2026-05-03 21:39",          // date de fin OU null (= en cours)
+  active:    false,                       // true → badge vert "Actif"
+  icon:      "/logos/modo.png",           // image dans /public/logos/
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Le **nombre de jours**, les **totaux** (années / mois / jours) et le badge **Actif**
+  sont calculés automatiquement et avancent tout seuls avec le temps.
+- Pour ajouter une icône : dépose le fichier dans `public/logos/` puis renseigne `icon`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Lancer en local
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install      # la première fois
+npm run dev
+```
 
-## Learn More
+Puis ouvre http://localhost:3000
 
-To learn more about Next.js, take a look at the following resources:
+## Déployer sur Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Le projet est déjà relié à GitHub et à Vercel, donc :
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Commit + push sur `main` :
+   ```bash
+   git add -A
+   git commit -m "maj parcours"
+   git push
+   ```
+2. Vercel rebuild automatiquement et publie le lien public.
 
-## Deploy on Vercel
+### Première mise en ligne (si jamais à refaire de zéro)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Crée un compte sur https://vercel.com puis « Add New → Project ».
+2. Importe le dépôt GitHub `parcours-ng` (framework détecté : Next.js, rien à configurer).
+3. Clique **Deploy** → tu obtiens un lien public du type `https://parcours-ng.vercel.app`,
+   accessible par tout le monde.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+En CLI : `npm i -g vercel`, puis `vercel` (préversion) ou `vercel --prod` (production).
