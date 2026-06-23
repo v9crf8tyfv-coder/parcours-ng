@@ -65,7 +65,7 @@ const journalismRoles: Role[] = [
     startDate: "2026-05-30 18:46",
     endDate: null,
     active: true,
-    icon: "/logos/white.png",
+    icon: "/logos/communication.png",
   },
 ];
 
@@ -318,7 +318,7 @@ export default function Home() {
         minHeight: "100vh",
         background: "radial-gradient(ellipse at top, #0e0720 0%, #000000 62%)",
         color: "#fff",
-        fontFamily: "'Segoe UI', system-ui, -apple-system, Arial, sans-serif",
+        fontFamily: "Arial, Helvetica, sans-serif",
         position: "relative",
         overflow: "hidden",
       }}
@@ -570,9 +570,13 @@ export default function Home() {
                             fontSize: 12,
                             fontWeight: 400,
                             whiteSpace: "nowrap",
-                            background: "rgba(168,85,247,0.13)",
-                            border: "1px solid rgba(168,85,247,0.4)",
-                            color: "#c084fc",
+                            background: role.active
+                              ? "rgba(34,197,94,0.13)"
+                              : "rgba(168,85,247,0.13)",
+                            border: role.active
+                              ? "1px solid rgba(34,197,94,0.4)"
+                              : "1px solid rgba(168,85,247,0.4)",
+                            color: role.active ? "#4ade80" : "#c084fc",
                           }}
                         >
                           {plural(days, "jour", "jours")}
