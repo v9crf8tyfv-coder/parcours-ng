@@ -529,7 +529,7 @@ export default function Home() {
                         }}
                       >
                         <RoleIcon src={role.icon} alt={role.title} size={26} />
-                        <span style={{ fontSize: 14.5, fontWeight: 500 }}>
+                        <span style={{ fontSize: 14.5, fontWeight: 400 }}>
                           {role.title}
                         </span>
                         <StatusBadge active={role.active} />
@@ -601,7 +601,7 @@ export default function Home() {
           <SkinHead size={18} />
           <span>
             Développé par{" "}
-            <span style={{ color: "rgba(167,139,250,0.8)", fontWeight: 600 }}>
+            <span style={{ color: "rgba(167,139,250,0.8)" }}>
               {PROFILE.username}
             </span>
           </span>
