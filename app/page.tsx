@@ -124,7 +124,9 @@ function breakdown(startMs: number, endMs: number) {
 const plural = (n: number, sing: string, plur: string) =>
   `${n} ${n > 1 ? plur : sing}`;
 
-/** Total d'une section : du tout premier rôle jusqu'à aujourd'hui. */
+/** Total d'une section : du tout premier rôle jusqu'à aujourd'hui.
+   Renvoie le découpage années/mois/jours ET le total de jours brut (qui
+   ne se réinitialise jamais : 354j → 366j → 400j…). */
 function sectionTotal(roles: Role[], now: number) {
   const starts = roles.map((r) => new Date(r.startDate).getTime());
   const earliest = Math.min(...starts);
@@ -132,7 +134,7 @@ function sectionTotal(roles: Role[], now: number) {
   const end = anyActive
     ? now
     : Math.max(...roles.map((r) => new Date(r.endDate as string).getTime()));
-  return breakdown(earliest, end);
+  return { ...breakdown(earliest, end), totalDays: daysBetween(earliest, end) };
 }
 
 /** "2025-07-06 18:34" → "06/07/2025 18h34" */
@@ -459,6 +461,16 @@ export default function Home() {
                 >
                   <RoleIcon src={section.icon} alt={section.title} size={24} />
                   {section.title}
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: "rgba(255,255,255,0.3)",
+                      letterSpacing: 0,
+                      marginLeft: -4,
+                    }}
+                  >
+                    ({total.totalDays}j)
+                  </span>
                 </h2>
 
                 <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
