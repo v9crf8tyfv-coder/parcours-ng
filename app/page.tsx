@@ -79,6 +79,33 @@ const PROFILE = {
   subtitle: "Parcours NationsGlory White",
 };
 
+/* Pays / nations — affichage discret tout en bas.
+     flag    : drapeau dans /logos/ (repli sur initiales si l'image manque)
+     mark    : logo "Pays ref" / "Empire" + date de passation (visible au survol)
+     current : pays actuel (petit "actuel" vert discret) */
+type Country = {
+  name: string;
+  flag: string;
+  mark?: { logo: string; label: string; date: string };
+  current?: boolean;
+};
+
+const countries: Country[] = [
+  { name: "Terre Snow", flag: "/logos/terresnow.png" },
+  { name: "Roumanie", flag: "/logos/roumanie.png" },
+  {
+    name: "Mongolie",
+    flag: "/logos/mongolie.png",
+    mark: { logo: "/logos/paysref.png", label: "Pays ref", date: "26/12/2025" },
+  },
+  {
+    name: "EmpireBooth",
+    flag: "/logos/empirebooth.png",
+    mark: { logo: "/logos/empirelogo.png", label: "Empire", date: "26/01/2025" },
+  },
+  { name: "Italie", flag: "/logos/italie.png", current: true },
+];
+
 /* ════════════════════════════════════════════════════════════════
    CALCULS DE DURÉE — automatiques, mis à jour avec le temps.
    ════════════════════════════════════════════════════════════════ */
@@ -291,6 +318,66 @@ function StatusBadge({ active }: { active: boolean }) {
   );
 }
 
+/** Drapeau de pays : on précharge l'image en arrière-plan et on ne
+   l'affiche que si elle existe vraiment. Sinon, petit repli sombre avec
+   les initiales. → aucune image cassée, et le drapeau apparaît tout seul
+   dès que tu déposes le fichier dans /public/logos/. */
+function CountryFlag({ src, name }: { src: string; name: string }) {
+  const [ok, setOk] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const img = new window.Image();
+    img.onload = () => { if (alive) setOk(true); };
+    img.onerror = () => { if (alive) setOk(false); };
+    img.src = src;
+    return () => { alive = false; };
+  }, [src]);
+
+  if (ok) {
+    return (
+      <img
+        src={src}
+        alt=""
+        style={{
+          height: 15,
+          width: "auto",
+          borderRadius: 3,
+          display: "block",
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: 15,
+        minWidth: 22,
+        padding: "0 4px",
+        borderRadius: 3,
+        background: "rgba(255,255,255,0.07)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        fontSize: 8,
+        letterSpacing: 0.5,
+        color: "rgba(255,255,255,0.5)",
+        flexShrink: 0,
+      }}
+    >
+      {initials}
+    </span>
+  );
+}
+
 /* ════════════════════════════════════════════════════════════════
    PAGE
    ════════════════════════════════════════════════════════════════ */
@@ -454,9 +541,10 @@ export default function Home() {
                     alignItems: "center",
                     gap: 10,
                     margin: 0,
-                    fontSize: isMobile ? 19 : 23,
-                    fontWeight: 400,
-                    letterSpacing: "-0.4px",
+                    fontFamily: "var(--font-title), Arial, sans-serif",
+                    fontSize: isMobile ? 23 : 29,
+                    fontWeight: 600,
+                    letterSpacing: "-0.5px",
                   }}
                 >
                   <RoleIcon src={section.icon} alt={section.title} size={24} />
@@ -631,9 +719,10 @@ export default function Home() {
                 alignItems: "center",
                 gap: 10,
                 margin: 0,
-                fontSize: isMobile ? 19 : 23,
-                fontWeight: 400,
-                letterSpacing: "-0.4px",
+                fontFamily: "var(--font-title), Arial, sans-serif",
+                fontSize: isMobile ? 23 : 29,
+                fontWeight: 600,
+                letterSpacing: "-0.5px",
               }}
             >
               <RoleIcon src="/logos/rpwhite.png" alt="RôlePlay White" size={24} />
@@ -678,9 +767,79 @@ export default function Home() {
               color: "rgba(255,255,255,0.4)",
             }}
           >
-            {"Il n'a jamais rejoint le RP — pour bientôt…"}
+            {"pour bientôt…"}
           </div>
         </section>
+
+        {/* ─────────── NATIONS / EMPIRES (discret) ─────────── */}
+        <div
+          style={{
+            marginTop: 10,
+            paddingTop: 18,
+            borderTop: "1px solid rgba(255,255,255,0.05)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: 9,
+              width: "fit-content",
+              margin: "0 auto",
+            }}
+          >
+            {countries.map((c) => (
+              <div
+                key={c.name}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 9,
+                  fontSize: 12.5,
+                  color: "rgba(255,255,255,0.5)",
+                }}
+              >
+                <CountryFlag src={c.flag} name={c.name} />
+                <span>{c.name}</span>
+                {c.mark && (
+                  <span className="natmark">
+                    <img
+                      src={c.mark.logo}
+                      alt={c.mark.label}
+                      style={{ height: 24, width: "auto", display: "block" }}
+                    />
+                    <span className="natmark-tip">
+                      {c.mark.label} · {c.mark.date}
+                    </span>
+                  </span>
+                )}
+                {c.current && (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      color: "rgba(74,222,128,0.7)",
+                      fontSize: 10.5,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: "50%",
+                        background: "#4ade80",
+                        boxShadow: "0 0 5px #4ade80",
+                      }}
+                    />
+                    actuel
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* ─────────── PIED DE PAGE ─────────── */}
         <footer
@@ -737,6 +896,32 @@ export default function Home() {
         .fade-in {
           opacity: 0;
           animation: fadeIn 0.55s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+
+        /* Tooltip de date sur les logos Pays ref / Empire */
+        .natmark { position: relative; display: inline-flex; align-items: center; cursor: help; }
+        .natmark-tip {
+          position: absolute;
+          bottom: calc(100% + 7px);
+          left: 50%;
+          transform: translateX(-50%) translateY(4px);
+          background: rgba(20,12,40,0.96);
+          border: 1px solid rgba(167,139,250,0.35);
+          color: #e9e3ff;
+          font-family: Arial, sans-serif;
+          font-size: 10.5px;
+          padding: 4px 9px;
+          border-radius: 7px;
+          white-space: nowrap;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity .18s, transform .18s;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+          z-index: 30;
+        }
+        .natmark:hover .natmark-tip {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
         }
 
         @media (prefers-reduced-motion: reduce) {
