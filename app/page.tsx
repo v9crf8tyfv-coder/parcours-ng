@@ -96,12 +96,12 @@ const countries: Country[] = [
   {
     name: "Mongolie",
     flag: "/logos/mongolie.png",
-    mark: { logo: "/logos/paysref.png", label: "Pays ref", date: "26/12/2025" },
+    mark: { logo: "/logos/paysref.png", label: "Passage Pays Référent", date: "26/12/2025" },
   },
   {
     name: "EmpireBooth",
     flag: "/logos/empirebooth.png",
-    mark: { logo: "/logos/empirelogo.png", label: "Empire", date: "26/01/2025" },
+    mark: { logo: "/logos/empirelogo.png", label: "Passage Empire", date: "26/01/2025" },
   },
   { name: "Italie", flag: "/logos/italie.png", current: true },
 ];
@@ -321,7 +321,7 @@ function StatusBadge({ active }: { active: boolean }) {
 /** Drapeau de pays : préchargé en arrière-plan, affiché seulement s'il
    existe vraiment. Sinon, simple espace transparent (aucun bloc blanc).
    → le drapeau apparaît tout seul dès que tu déposes le fichier. */
-function CountryFlag({ src }: { src: string }) {
+function CountryFlag({ src, name }: { src: string; name: string }) {
   const [ok, setOk] = useState(false);
   useEffect(() => {
     let alive = true;
@@ -347,9 +347,33 @@ function CountryFlag({ src }: { src: string }) {
       />
     );
   }
-  // Pas d'image : espace transparent pour garder l'alignement, zéro blanc.
+  // Pas d'image : petit badge avec les initiales (ex. "TS" pour Terre Snow).
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   return (
-    <span style={{ width: 24, height: 16, flexShrink: 0, display: "inline-block" }} />
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: 16,
+        minWidth: 24,
+        padding: "0 5px",
+        borderRadius: 3,
+        background: "rgba(255,255,255,0.07)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        fontSize: 9,
+        letterSpacing: 0.5,
+        color: "rgba(255,255,255,0.6)",
+        flexShrink: 0,
+      }}
+    >
+      {initials}
+    </span>
   );
 }
 
@@ -775,7 +799,7 @@ export default function Home() {
                   color: "rgba(255,255,255,0.5)",
                 }}
               >
-                <CountryFlag src={c.flag} />
+                <CountryFlag src={c.flag} name={c.name} />
                 <span>{c.name}</span>
                 {c.mark && (
                   <span className="natmark">
