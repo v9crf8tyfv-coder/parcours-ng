@@ -602,6 +602,86 @@ export default function Home() {
           );
         })}
 
+        {/* ─────────── ROLEPLAY (à venir) ─────────── */}
+        <section
+          className="fade-in"
+          style={{
+            borderRadius: 20,
+            padding: isMobile ? 16 : 24,
+            background: "rgba(255,255,255,0.025)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            marginBottom: 22,
+            animationDelay: `${0.08 * (sections.length + 1)}s`,
+          }}
+        >
+          {/* Titre + statut */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 12,
+              marginBottom: 18,
+            }}
+          >
+            <h2
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                margin: 0,
+                fontSize: isMobile ? 19 : 23,
+                fontWeight: 400,
+                letterSpacing: "-0.4px",
+              }}
+            >
+              <RoleIcon src="/logos/rpwhite.png" alt="RôlePlay White" size={24} />
+              RôlePlay White
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "rgba(255,255,255,0.3)",
+                  letterSpacing: 0,
+                  marginLeft: -4,
+                }}
+              >
+                (0j)
+              </span>
+            </h2>
+
+            <span
+              style={{
+                padding: "4px 11px",
+                borderRadius: 999,
+                fontSize: 11.5,
+                background: "rgba(167,139,250,0.1)",
+                border: "1px solid rgba(167,139,250,0.35)",
+                color: "#c4b5fd",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Bientôt
+            </span>
+          </div>
+
+          {/* Message (jamais rejoint) */}
+          <div
+            style={{
+              padding: "16px",
+              borderRadius: 13,
+              background: "rgba(0,0,0,0.28)",
+              border: "1px solid rgba(255,255,255,0.05)",
+              textAlign: "center",
+              fontSize: 13,
+              fontStyle: "italic",
+              color: "rgba(255,255,255,0.4)",
+            }}
+          >
+            {"Il n'a jamais rejoint le RP — pour bientôt…"}
+          </div>
+        </section>
+
         {/* ─────────── PIED DE PAGE ─────────── */}
         <footer
           style={{
