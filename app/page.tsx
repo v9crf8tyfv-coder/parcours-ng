@@ -318,11 +318,10 @@ function StatusBadge({ active }: { active: boolean }) {
   );
 }
 
-/** Drapeau de pays : on précharge l'image en arrière-plan et on ne
-   l'affiche que si elle existe vraiment. Sinon, petit repli sombre avec
-   les initiales. → aucune image cassée, et le drapeau apparaît tout seul
-   dès que tu déposes le fichier dans /public/logos/. */
-function CountryFlag({ src, name }: { src: string; name: string }) {
+/** Drapeau de pays : préchargé en arrière-plan, affiché seulement s'il
+   existe vraiment. Sinon, simple espace transparent (aucun bloc blanc).
+   → le drapeau apparaît tout seul dès que tu déposes le fichier. */
+function CountryFlag({ src }: { src: string }) {
   const [ok, setOk] = useState(false);
   useEffect(() => {
     let alive = true;
@@ -339,7 +338,7 @@ function CountryFlag({ src, name }: { src: string; name: string }) {
         src={src}
         alt=""
         style={{
-          height: 15,
+          height: 16,
           width: "auto",
           borderRadius: 3,
           display: "block",
@@ -348,33 +347,9 @@ function CountryFlag({ src, name }: { src: string; name: string }) {
       />
     );
   }
-
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  // Pas d'image : espace transparent pour garder l'alignement, zéro blanc.
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: 15,
-        minWidth: 22,
-        padding: "0 4px",
-        borderRadius: 3,
-        background: "rgba(255,255,255,0.07)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        fontSize: 8,
-        letterSpacing: 0.5,
-        color: "rgba(255,255,255,0.5)",
-        flexShrink: 0,
-      }}
-    >
-      {initials}
-    </span>
+    <span style={{ width: 24, height: 16, flexShrink: 0, display: "inline-block" }} />
   );
 }
 
@@ -767,7 +742,7 @@ export default function Home() {
               color: "rgba(255,255,255,0.4)",
             }}
           >
-            {"pour bientôt…"}
+            {"Pour bientôt…"}
           </div>
         </section>
 
@@ -800,7 +775,7 @@ export default function Home() {
                   color: "rgba(255,255,255,0.5)",
                 }}
               >
-                <CountryFlag src={c.flag} name={c.name} />
+                <CountryFlag src={c.flag} />
                 <span>{c.name}</span>
                 {c.mark && (
                   <span className="natmark">
@@ -833,7 +808,7 @@ export default function Home() {
                         boxShadow: "0 0 5px #4ade80",
                       }}
                     />
-                    actuel
+                    Actuel
                   </span>
                 )}
               </div>
