@@ -782,7 +782,7 @@ export default function Home() {
                     <img
                       src={c.mark.logo}
                       alt={c.mark.label}
-                      style={{ height: 30, width: "auto", display: "block" }}
+                      style={{ height: 25, width: "auto", display: "block" }}
                     />
                     <span className="natmark-tip">
                       {c.mark.label} · {c.mark.date}
