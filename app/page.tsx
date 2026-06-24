@@ -54,11 +54,11 @@ const journalismRoles: Role[] = [
     icon: "/logos/journal.png",
   },
   {
-    title: "Journaliste Indépendant",
+    title: "Journaliste de l'Indépendant",
     startDate: "2025-09-22 00:00",
     endDate: null,
     active: true,
-    icon: "/logos/journal.png",
+    icon: "/logos/indépendant.png",
   },
   {
     title: "Communication White",
