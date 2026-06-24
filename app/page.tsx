@@ -770,7 +770,7 @@ export default function Home() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 9,
+                  gap: 6,
                   fontSize: 12.5,
                   color: "rgba(255,255,255,0.5)",
                 }}
@@ -782,7 +782,7 @@ export default function Home() {
                     <img
                       src={c.mark.logo}
                       alt={c.mark.label}
-                      style={{ height: 24, width: "auto", display: "block" }}
+                      style={{ height: 30, width: "auto", display: "block" }}
                     />
                     <span className="natmark-tip">
                       {c.mark.label} · {c.mark.date}
