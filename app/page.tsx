@@ -269,9 +269,9 @@ function StatusBadge({ active }: { active: boolean }) {
           gap: 6,
           padding: "3px 10px",
           borderRadius: 999,
-          background: "rgba(34,197,94,0.12)",
-          border: "1px solid rgba(34,197,94,0.4)",
-          color: "#4ade80",
+          background: "rgba(22,163,74,0.12)",
+          border: "1px solid rgba(22,163,74,0.4)",
+          color: "#16a34a",
           fontSize: 11,
           fontWeight: 400,
         }}
@@ -282,8 +282,8 @@ function StatusBadge({ active }: { active: boolean }) {
             width: 7,
             height: 7,
             borderRadius: "50%",
-            background: "#22c55e",
-            boxShadow: "0 0 6px #22c55e",
+            background: "#16a34a",
+            boxShadow: "0 0 6px #16a34a",
           }}
         />
         Actif
