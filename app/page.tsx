@@ -71,7 +71,7 @@ const journalismRoles: Role[] = [
 
 const sections = [
   { title: "Staff White", icon: "/logos/white.png", roles: staffRoles },
-  { title: "Journalisme", icon: "/logos/journal.png", roles: journalismRoles },
+  { title: "Pôle Médias", icon: "/logos/journal.png", roles: journalismRoles },
 ];
 
 const PROFILE = {
@@ -882,11 +882,10 @@ export default function Home() {
       {/* Animations légères */}
       <style>{`
         @keyframes pulse {
-          0%   { transform: scale(1);   opacity: 1; }
-          50%  { transform: scale(1.4); opacity: 0.4; }
-          100% { transform: scale(1);   opacity: 1; }
+          0%, 100% { transform: scale(1);   opacity: 1; }
+          50%      { transform: scale(1.5); opacity: 0.15; }
         }
-        .pulse-dot { animation: pulse 2s infinite; }
+        .pulse-dot { animation: pulse 1.5s ease-in-out infinite; }
 
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(12px); }
