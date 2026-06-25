@@ -11,11 +11,16 @@ import Profile, { THEMES, type Role, type Country } from "./Profile";
 
 const staffRoles: Role[] = [
   {
-    title: "Modérateur Test White",
+    title: "Modérateur Test",
     startDate: "2025-07-06 18:34",
     endDate: "2025-08-17 17:40",
     active: false,
     icon: "/logos/modo_test.png",
+    candidatures: [
+      { url: "https://nationsglory.fr/forums/thread/candidature-modo.128764", status: "Refusé" },
+      { url: "https://nationsglory.fr/forums/thread/candidature-moderateur.130391", status: "Refusé" },
+      { url: "https://nationsglory.fr/forums/thread/candidature-moderateurs.134745", status: "Accepté" },
+    ],
   },
   {
     title: "Modérateur Confirmé",
@@ -40,6 +45,9 @@ const journalismRoles: Role[] = [
     endDate: null,
     active: true,
     icon: "/logos/journal.png",
+    candidatures: [
+      { url: "https://nationsglory.fr/forums/thread/ixtazzking.135691", status: "Accepté" },
+    ],
   },
   {
     title: "Journaliste de l'Indépendant",
@@ -58,7 +66,7 @@ const journalismRoles: Role[] = [
 ];
 
 const countries: Country[] = [
-  { name: "Terre Snow", flag: "/logos/terresnow.png" },
+  { name: "TerreSnow", flag: "/logos/terresnow.png" },
   { name: "Roumanie", flag: "/logos/roumanie.png" },
   {
     name: "Mongolie",
@@ -80,6 +88,7 @@ export default function Home() {
         username: "ixtazzking",
         subtitle: "Parcours NationsGlory White",
         theme: THEMES.purple,
+        index: 1,
         otherHref: "/orionyx84",
         sections: [
           { title: "Staff White", icon: "/logos/white.png", roles: staffRoles },
@@ -89,6 +98,7 @@ export default function Home() {
           title: "RôlePlay White",
           icon: "/logos/rpwhite.png",
           message: "Pour bientôt…",
+          groups: [{ title: "Justice", icon: "/logos/justice.png", roles: [] }],
         },
         countries,
       }}

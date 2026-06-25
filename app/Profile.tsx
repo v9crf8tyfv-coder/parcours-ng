@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 /* ════════════════════════════════════════════════════════════════
    TYPES & THÈMES
    ════════════════════════════════════════════════════════════════ */
+
+export type Candidature = { url: string; status: "Accepté" | "Refusé" };
 
 export type Role = {
   title: string;
@@ -12,6 +15,8 @@ export type Role = {
   endDate: string | null; // null = en cours
   active: boolean;
   icon: string; // image dans /public/logos/
+  iconSize?: number; // taille de l'icône (défaut 26) si on veut l'agrandir
+  candidatures?: Candidature[]; // si présent → rôle cliquable, ouvre la liste
 };
 
 export type Country = {
@@ -67,8 +72,14 @@ export type ProfileConfig = {
   username: string;
   subtitle: string;
   theme: Theme;
+  index: number; // numéro affiché en haut à gauche (1, 2, …)
   sections: Section[];
-  rp?: { title: string; icon: string; message: string };
+  rp?: {
+    title: string;
+    icon: string;
+    message?: string; // texte si pas (encore) de rangs
+    groups?: { title: string; icon?: string; roles: Role[] }[]; // sous-catégories (ex: Conservateurs)
+  };
   countries: Country[];
   otherHref: string; // cible du point "." en haut à droite
 };
@@ -339,16 +350,186 @@ function CountryFlag({ src, name }: { src: string; name: string }) {
   );
 }
 
+/** Ligne d'un rôle (réutilisée par les sections ET le RP). */
+function RoleRow({
+  role,
+  now,
+  isMobile,
+  hovered,
+  setHovered,
+  rowKey,
+  theme,
+  onCandidatures,
+}: {
+  role: Role;
+  now: number;
+  isMobile: boolean;
+  hovered: string | null;
+  setHovered: (k: string | null) => void;
+  rowKey: string;
+  theme: Theme;
+  onCandidatures?: () => void;
+}) {
+  const startMs = new Date(role.startDate).getTime();
+  const endMs = role.endDate ? new Date(role.endDate).getTime() : now;
+  const days = daysBetween(startMs, endMs);
+  const isHover = hovered === rowKey;
+  const clickable = !!role.candidatures && role.candidatures.length > 0;
+  return (
+    <div
+      onMouseEnter={() => setHovered(rowKey)}
+      onMouseLeave={() => setHovered(null)}
+      onClick={clickable ? onCandidatures : undefined}
+      style={{
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        alignItems: isMobile ? "flex-start" : "center",
+        justifyContent: "space-between",
+        gap: isMobile ? 10 : 14,
+        padding: isMobile ? "13px 14px" : "13px 16px",
+        borderRadius: 13,
+        cursor: clickable ? "pointer" : "default",
+        background: isHover ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.28)",
+        border: `1px solid ${isHover ? theme.hoverBorder : "rgba(255,255,255,0.05)"}`,
+        transform: isHover && !isMobile ? "translateX(4px)" : "none",
+        transition: "all 0.22s cubic-bezier(0.4,0,0.2,1)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 11,
+          flexWrap: "wrap",
+          minWidth: 0,
+        }}
+      >
+        <RoleIcon src={role.icon} alt={role.title} size={role.iconSize ?? 26} />
+        <span style={{ fontSize: 14.5, fontWeight: 400 }}>{role.title}</span>
+        <StatusBadge active={role.active} />
+        {clickable && (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "2px 9px",
+              borderRadius: 999,
+              fontSize: 10.5,
+              background: theme.soft,
+              border: `1px solid ${theme.frameBorder}`,
+              color: theme.fallbackText,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <span style={{ fontSize: 10 }}>📄</span>
+            {role.candidatures!.length} candidature
+            {role.candidatures!.length > 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          flexWrap: "wrap",
+          justifyContent: isMobile ? "flex-start" : "flex-end",
+        }}
+      >
+        <span style={{ fontSize: 11.5, color: role.endDate ? "#c084fc" : "#4ade80" }}>
+          {formatDate(role.startDate)}
+        </span>
+        <span style={{ color: "rgba(255,255,255,0.25)" }}>→</span>
+        <span style={{ fontSize: 11.5, color: role.endDate ? "#c084fc" : "#4ade80" }}>
+          {role.endDate ? formatDate(role.endDate) : "en cours"}
+        </span>
+        <span
+          style={{
+            padding: "5px 11px",
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 400,
+            whiteSpace: "nowrap",
+            background: role.active ? "rgba(34,197,94,0.13)" : "rgba(168,85,247,0.13)",
+            border: role.active
+              ? "1px solid rgba(34,197,94,0.4)"
+              : "1px solid rgba(168,85,247,0.4)",
+            color: role.active ? "#4ade80" : "#c084fc",
+          }}
+        >
+          {plural(days, "jour", "jours")}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** Badges dorés (an / mois / jours). */
+function GoldBadges({
+  total,
+}: {
+  total: { years: number; months: number; days: number };
+}) {
+  const items = [
+    plural(total.years, "an", "ans"),
+    `${total.months} mois`,
+    plural(total.days, "jour", "jours"),
+  ];
+  return (
+    <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+      {items.map((txt) => (
+        <span
+          key={txt}
+          style={{
+            padding: "4px 11px",
+            borderRadius: 999,
+            fontSize: 11.5,
+            fontWeight: 400,
+            background: "rgba(234,179,8,0.1)",
+            border: "1px solid rgba(234,179,8,0.35)",
+            color: "#facc15",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {txt}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** Compteur (Xj) à côté d'un titre. */
+function DayCount({ days }: { days: number }) {
+  return (
+    <span
+      style={{
+        fontSize: 12,
+        color: "rgba(255,255,255,0.3)",
+        letterSpacing: 0,
+        marginLeft: -4,
+      }}
+    >
+      ({days}j)
+    </span>
+  );
+}
+
 /* ════════════════════════════════════════════════════════════════
    PAGE PROFIL (réutilisable)
    ════════════════════════════════════════════════════════════════ */
 
 export default function Profile({ config }: { config: ProfileConfig }) {
-  const { username, subtitle, theme, sections, rp, countries, otherHref } = config;
+  const { username, subtitle, theme, index, sections, rp, countries, otherHref } =
+    config;
 
   const [now, setNow] = useState<number>(() => Date.now());
   const [isMobile, setIsMobile] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
+  const [leaving, setLeaving] = useState(false);
+  const [candModal, setCandModal] = useState<Role | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     setNow(Date.now());
@@ -374,21 +555,60 @@ export default function Profile({ config }: { config: ProfileConfig }) {
     letterSpacing: "-0.5px",
   };
 
-  const dayBadgeStyle = (active: boolean): React.CSSProperties => ({
-    padding: "5px 11px",
-    borderRadius: 999,
-    fontSize: 12,
-    fontWeight: 400,
-    whiteSpace: "nowrap",
-    background: active ? "rgba(34,197,94,0.13)" : "rgba(168,85,247,0.13)",
-    border: active ? "1px solid rgba(34,197,94,0.4)" : "1px solid rgba(168,85,247,0.4)",
-    color: active ? "#4ade80" : "#c084fc",
-  });
+  // Transition au clic sur le point "." : fondu + léger zoom, puis navigation.
+  const goOther = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (leaving) return;
+    setLeaving(true);
+    setTimeout(() => router.push(otherHref), 300);
+  };
 
   const empty =
     sections.length === 0 && !rp && countries.length === 0;
 
   return (
+    <>
+    {/* Numéro de profil — en haut à gauche (hors <main> → reste fixe sur mobile) */}
+    <div
+      style={{
+        position: "fixed",
+        top: 14,
+        left: 18,
+        zIndex: 20,
+        fontSize: 12,
+        letterSpacing: 0.5,
+        color: "rgba(255,255,255,0.35)",
+        userSelect: "none",
+      }}
+    >
+      {username}{" "}
+      <span style={{ color: theme.accentSolid, fontWeight: 600 }}>{index}</span>
+    </div>
+
+    {/* Point "." discret en haut à droite → autre profil (hors <main>) */}
+    <a
+      href={otherHref}
+      onClick={goOther}
+      aria-label="Autre profil"
+      className="dot-link"
+      style={
+        {
+          position: "fixed",
+          top: isMobile ? 16 : 18,
+          right: isMobile ? 16 : 20,
+          zIndex: 20,
+          display: "block",
+          width: isMobile ? 18 : 13,
+          height: isMobile ? 18 : 13,
+          borderRadius: "50%",
+          background: "rgba(255,255,255,0.22)",
+          transition: "all 0.2s",
+          cursor: "pointer",
+          ["--accent"]: theme.accentSolid,
+        } as React.CSSProperties
+      }
+    />
+
     <main
       style={
         {
@@ -398,6 +618,8 @@ export default function Profile({ config }: { config: ProfileConfig }) {
           fontFamily: "Arial, Helvetica, sans-serif",
           position: "relative",
           overflow: "hidden",
+          opacity: leaving ? 0 : 1,
+          transition: "opacity 0.3s ease",
           ["--accent"]: theme.accentSolid,
         } as React.CSSProperties
       }
@@ -428,26 +650,6 @@ export default function Profile({ config }: { config: ProfileConfig }) {
         }}
       />
 
-      {/* Point "." discret en haut à droite → autre profil */}
-      <a
-        href={otherHref}
-        aria-label="Autre profil"
-        className="dot-link"
-        style={{
-          position: "fixed",
-          top: 16,
-          right: 18,
-          zIndex: 6,
-          display: "block",
-          width: 9,
-          height: 9,
-          borderRadius: "50%",
-          background: "rgba(255,255,255,0.22)",
-          transition: "all 0.2s",
-          cursor: "pointer",
-        }}
-      />
-
       <div
         style={{
           position: "relative",
@@ -455,6 +657,8 @@ export default function Profile({ config }: { config: ProfileConfig }) {
           maxWidth: 780,
           margin: "0 auto",
           padding: isMobile ? "44px 16px 80px" : "64px 24px 110px",
+          transform: leaving ? "scale(0.98)" : "none",
+          transition: "transform 0.35s ease",
         }}
       >
         {/* ─────────── EN-TÊTE ─────────── */}
@@ -581,159 +785,154 @@ export default function Profile({ config }: { config: ProfileConfig }) {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {section.roles.map((role, ri) => {
-                  const startMs = new Date(role.startDate).getTime();
-                  const endMs = role.endDate ? new Date(role.endDate).getTime() : now;
-                  const days = daysBetween(startMs, endMs);
-                  const key = `${si}-${ri}`;
-                  const isHover = hovered === key;
-
-                  return (
-                    <div
-                      key={key}
-                      onMouseEnter={() => setHovered(key)}
-                      onMouseLeave={() => setHovered(null)}
-                      style={{
-                        display: "flex",
-                        flexDirection: isMobile ? "column" : "row",
-                        alignItems: isMobile ? "flex-start" : "center",
-                        justifyContent: "space-between",
-                        gap: isMobile ? 10 : 14,
-                        padding: isMobile ? "13px 14px" : "13px 16px",
-                        borderRadius: 13,
-                        background: isHover
-                          ? "rgba(255,255,255,0.05)"
-                          : "rgba(0,0,0,0.28)",
-                        border: `1px solid ${
-                          isHover ? theme.hoverBorder : "rgba(255,255,255,0.05)"
-                        }`,
-                        transform: isHover && !isMobile ? "translateX(4px)" : "none",
-                        transition: "all 0.22s cubic-bezier(0.4,0,0.2,1)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 11,
-                          flexWrap: "wrap",
-                          minWidth: 0,
-                        }}
-                      >
-                        <RoleIcon src={role.icon} alt={role.title} size={26} />
-                        <span style={{ fontSize: 14.5, fontWeight: 400 }}>
-                          {role.title}
-                        </span>
-                        <StatusBadge active={role.active} />
-                      </div>
-
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          flexWrap: "wrap",
-                          justifyContent: isMobile ? "flex-start" : "flex-end",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: 11.5,
-                            color: role.endDate ? "#c084fc" : "#4ade80",
-                          }}
-                        >
-                          {formatDate(role.startDate)}
-                        </span>
-                        <span style={{ color: "rgba(255,255,255,0.25)" }}>→</span>
-                        <span
-                          style={{
-                            fontSize: 11.5,
-                            color: role.endDate ? "#c084fc" : "#4ade80",
-                          }}
-                        >
-                          {role.endDate ? formatDate(role.endDate) : "en cours"}
-                        </span>
-                        <span style={dayBadgeStyle(role.active)}>
-                          {plural(days, "jour", "jours")}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+                {section.roles.map((role, ri) => (
+                  <RoleRow
+                    key={`${si}-${ri}`}
+                    role={role}
+                    now={now}
+                    isMobile={isMobile}
+                    hovered={hovered}
+                    setHovered={setHovered}
+                    rowKey={`${si}-${ri}`}
+                    theme={theme}
+                    onCandidatures={() => setCandModal(role)}
+                  />
+                ))}
               </div>
             </section>
           );
         })}
 
         {/* ─────────── ROLEPLAY (optionnel) ─────────── */}
-        {rp && (
-          <section
-            className="fade-in"
-            style={{
-              borderRadius: 20,
-              padding: isMobile ? 16 : 24,
-              background: "rgba(255,255,255,0.025)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              marginBottom: 22,
-              animationDelay: `${0.08 * (sections.length + 1)}s`,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: 12,
-                marginBottom: 18,
-              }}
-            >
-              <h2 style={titleStyle}>
-                <RoleIcon src={rp.icon} alt={rp.title} size={24} />
-                {rp.title}
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: "rgba(255,255,255,0.3)",
-                    letterSpacing: 0,
-                    marginLeft: -4,
-                  }}
-                >
-                  (0j)
-                </span>
-              </h2>
-
-              <span
+        {rp &&
+          (() => {
+            const allRoles = rp.groups ? rp.groups.flatMap((g) => g.roles) : [];
+            const hasRoles = allRoles.length > 0;
+            const total = hasRoles ? sectionTotal(allRoles, now) : null;
+            return (
+              <section
+                className="fade-in"
                 style={{
-                  padding: "4px 11px",
-                  borderRadius: 999,
-                  fontSize: 11.5,
-                  background: theme.soft,
-                  border: `1px solid ${theme.frameBorder}`,
-                  color: theme.fallbackText,
-                  whiteSpace: "nowrap",
+                  borderRadius: 20,
+                  padding: isMobile ? 16 : 24,
+                  background: "rgba(255,255,255,0.025)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  marginBottom: 22,
+                  animationDelay: `${0.08 * (sections.length + 1)}s`,
                 }}
               >
-                Bientôt
-              </span>
-            </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: 12,
+                    marginBottom: 18,
+                  }}
+                >
+                  <h2 style={titleStyle}>
+                    <RoleIcon src={rp.icon} alt={rp.title} size={24} />
+                    {rp.title}
+                    <DayCount days={total ? total.totalDays : 0} />
+                  </h2>
 
-            <div
-              style={{
-                padding: "16px",
-                borderRadius: 13,
-                background: "rgba(0,0,0,0.28)",
-                border: "1px solid rgba(255,255,255,0.05)",
-                textAlign: "center",
-                fontSize: 13,
-                fontStyle: "italic",
-                color: "rgba(255,255,255,0.4)",
-              }}
-            >
-              {rp.message}
-            </div>
-          </section>
-        )}
+                  {hasRoles && total ? (
+                    <GoldBadges total={total} />
+                  ) : (
+                    <span
+                      style={{
+                        padding: "4px 11px",
+                        borderRadius: 999,
+                        fontSize: 11.5,
+                        background: theme.soft,
+                        border: `1px solid ${theme.frameBorder}`,
+                        color: theme.fallbackText,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Bientôt
+                    </span>
+                  )}
+                </div>
+
+                {rp.groups ? (
+                  rp.groups.map((g, gi) => (
+                    <div key={g.title} style={{ marginTop: gi === 0 ? 0 : 18 }}>
+                      {/* Sous-catégorie (ex: Conservateurs, Justice) */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          margin: "2px 2px 10px",
+                        }}
+                      >
+                        {g.icon && <RoleIcon src={g.icon} alt={g.title} size={20} />}
+                        <span
+                          style={{
+                            fontFamily: "var(--font-title), Arial, sans-serif",
+                            fontSize: 15,
+                            fontWeight: 600,
+                            color: "rgba(255,255,255,0.72)",
+                          }}
+                        >
+                          {g.title}
+                        </span>
+                      </div>
+                      {g.roles.length > 0 ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                          {g.roles.map((role, ri) => (
+                            <RoleRow
+                              key={`rp-${gi}-${ri}`}
+                              role={role}
+                              now={now}
+                              isMobile={isMobile}
+                              hovered={hovered}
+                              setHovered={setHovered}
+                              rowKey={`rp-${gi}-${ri}`}
+                              theme={theme}
+                              onCandidatures={() => setCandModal(role)}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            padding: "16px",
+                            borderRadius: 13,
+                            background: "rgba(0,0,0,0.28)",
+                            border: "1px solid rgba(255,255,255,0.05)",
+                            textAlign: "center",
+                            fontSize: 13,
+                            fontStyle: "italic",
+                            color: "rgba(255,255,255,0.4)",
+                          }}
+                        >
+                          {rp.message ?? "Pour bientôt…"}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div
+                    style={{
+                      padding: "16px",
+                      borderRadius: 13,
+                      background: "rgba(0,0,0,0.28)",
+                      border: "1px solid rgba(255,255,255,0.05)",
+                      textAlign: "center",
+                      fontSize: 13,
+                      fontStyle: "italic",
+                      color: "rgba(255,255,255,0.4)",
+                    }}
+                  >
+                    {rp.message}
+                  </div>
+                )}
+              </section>
+            );
+          })()}
 
         {/* ─────────── PLACEHOLDER (profil vide) ─────────── */}
         {empty && (
@@ -846,6 +1045,146 @@ export default function Profile({ config }: { config: ProfileConfig }) {
         </footer>
       </div>
 
+      {/* Modale : liste des candidatures */}
+      {candModal && candModal.candidatures && (
+        <div
+          onClick={() => setCandModal(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            background: "rgba(0,0,0,0.62)",
+            backdropFilter: "blur(3px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+            animation: "fadeIn 0.2s ease",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="cand-pop"
+            style={{
+              width: "100%",
+              maxWidth: 330,
+              background: "rgba(15,16,30,0.98)",
+              border: `1px solid ${theme.frameBorder}`,
+              borderRadius: 13,
+              padding: 15,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 10,
+                marginBottom: 11,
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span
+                  style={{
+                    fontSize: 9.5,
+                    letterSpacing: 1.5,
+                    textTransform: "uppercase",
+                    color: theme.accent,
+                  }}
+                >
+                  Candidatures
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-title), Arial, sans-serif",
+                    fontSize: 15,
+                    fontWeight: 600,
+                  }}
+                >
+                  {candModal.title}
+                </span>
+              </div>
+              <button
+                onClick={() => setCandModal(null)}
+                aria-label="Fermer"
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "rgba(255,255,255,0.6)",
+                  borderRadius: 8,
+                  width: 28,
+                  height: 28,
+                  cursor: "pointer",
+                  fontSize: 14,
+                  lineHeight: 1,
+                  flexShrink: 0,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {candModal.candidatures.map((c, i) => {
+                const ok = c.status === "Accepté";
+                return (
+                  <a
+                    key={i}
+                    href={c.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="cand-row"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      padding: "8px 11px",
+                      borderRadius: 10,
+                      background: "rgba(0,0,0,0.3)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      textDecoration: "none",
+                      color: "#fff",
+                      transition: "all 0.18s",
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        fontSize: 12.5,
+                      }}
+                    >
+                      <span style={{ fontSize: 12 }}>📄</span>
+                      Candidature {i + 1}
+                    </span>
+                    <span
+                      style={{
+                        padding: "2px 9px",
+                        borderRadius: 999,
+                        fontSize: 10.5,
+                        whiteSpace: "nowrap",
+                        background: ok
+                          ? "rgba(22,163,74,0.14)"
+                          : "rgba(239,68,68,0.13)",
+                        border: ok
+                          ? "1px solid rgba(22,163,74,0.45)"
+                          : "1px solid rgba(239,68,68,0.4)",
+                        color: ok ? "#16a34a" : "#ef4444",
+                      }}
+                    >
+                      {c.status}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Signature discrète */}
       <div
         style={{
@@ -886,6 +1225,16 @@ export default function Profile({ config }: { config: ProfileConfig }) {
           transform: scale(1.25);
         }
 
+        @keyframes popIn {
+          from { opacity: 0; transform: scale(0.96); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        .cand-pop { animation: popIn 0.2s ease; }
+        .cand-row:hover {
+          background: rgba(255,255,255,0.06) !important;
+          border-color: var(--accent) !important;
+        }
+
         .natmark { position: relative; display: inline-flex; align-items: center; cursor: help; }
         .natmark-tip {
           position: absolute;
@@ -917,5 +1266,6 @@ export default function Profile({ config }: { config: ProfileConfig }) {
         }
       `}</style>
     </main>
+    </>
   );
 }
