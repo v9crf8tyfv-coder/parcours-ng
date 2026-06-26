@@ -592,7 +592,7 @@ export default function Profile({ config }: { config: ProfileConfig }) {
       sessionStorage.setItem("nav", "1");
     } catch {}
     setLeaving(true);
-    setTimeout(() => router.push(otherHref), 300);
+    setTimeout(() => router.push(otherHref), 180);
   };
 
   const empty =
@@ -630,8 +630,8 @@ export default function Profile({ config }: { config: ProfileConfig }) {
           right: isMobile ? 16 : 20,
           zIndex: 20,
           display: "block",
-          width: isMobile ? 18 : 13,
-          height: isMobile ? 18 : 13,
+          width: isMobile ? 22 : 16,
+          height: isMobile ? 22 : 16,
           borderRadius: "50%",
           background: "rgba(255,255,255,0.22)",
           transition: "all 0.2s",
@@ -651,7 +651,7 @@ export default function Profile({ config }: { config: ProfileConfig }) {
           position: "relative",
           overflow: "hidden",
           opacity: leaving ? 0 : 1,
-          transition: "opacity 0.3s ease",
+          transition: "opacity 0.18s ease",
           ["--accent"]: theme.accentSolid,
         } as React.CSSProperties
       }
@@ -689,8 +689,8 @@ export default function Profile({ config }: { config: ProfileConfig }) {
           maxWidth: 780,
           margin: "0 auto",
           padding: isMobile ? "44px 16px 80px" : "64px 24px 110px",
-          transform: leaving ? "scale(0.98)" : "none",
-          transition: "transform 0.35s ease",
+          transform: leaving ? "translateX(-40px)" : "none",
+          transition: "transform 0.18s ease",
         }}
       >
         {/* ─────────── EN-TÊTE ─────────── */}
