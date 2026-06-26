@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 /* ════════════════════════════════════════════════════════════════
    TYPES & THÈMES
@@ -41,7 +41,7 @@ export type Theme = {
   fallbackText: string;
 };
 
-export const THEMES: Record<"purple" | "blue", Theme> = {
+export const THEMES: Record<"purple" | "blue" | "red", Theme> = {
   purple: {
     bg: "radial-gradient(ellipse at top, #0e0720 0%, #000000 62%)",
     halo: "rgba(124,58,237,0.22)",
@@ -65,6 +65,18 @@ export const THEMES: Record<"purple" | "blue", Theme> = {
     hoverBorder: "rgba(96,165,250,0.3)",
     fallbackBg: "rgba(96,165,250,0.15)",
     fallbackText: "#93c5fd",
+  },
+  red: {
+    bg: "radial-gradient(ellipse at top, #2a0808 0%, #000000 62%)",
+    halo: "rgba(220,38,38,0.22)",
+    frameBorder: "rgba(248,113,113,0.3)",
+    frameGlow: "rgba(220,38,38,0.3)",
+    accent: "rgba(248,113,113,0.85)",
+    accentSolid: "#f87171",
+    soft: "rgba(248,113,113,0.1)",
+    hoverBorder: "rgba(248,113,113,0.3)",
+    fallbackBg: "rgba(248,113,113,0.15)",
+    fallbackText: "#fca5a5",
   },
 };
 
@@ -240,9 +252,9 @@ function StatusBadge({ active }: { active: boolean }) {
           gap: 6,
           padding: "3px 10px",
           borderRadius: 999,
-          background: "rgba(22,163,74,0.12)",
-          border: "1px solid rgba(22,163,74,0.4)",
-          color: "#16a34a",
+          background: "rgba(21,128,61,0.14)",
+          border: "1px solid rgba(21,128,61,0.5)",
+          color: "#15803d",
           fontSize: 11,
           fontWeight: 400,
         }}
@@ -253,8 +265,8 @@ function StatusBadge({ active }: { active: boolean }) {
             width: 7,
             height: 7,
             borderRadius: "50%",
-            background: "#16a34a",
-            boxShadow: "0 0 6px #16a34a",
+            background: "#15803d",
+            boxShadow: "0 0 6px #15803d",
           }}
         />
         Actif
@@ -530,6 +542,22 @@ export default function Profile({ config }: { config: ProfileConfig }) {
   const [leaving, setLeaving] = useState(false);
   const [candModal, setCandModal] = useState<Role | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Mémorise la dernière page visitée → si on rouvre le site, on y revient
+  // (au lieu de toujours repartir de l'accueil). On ne redirige que sur "/".
+  useEffect(() => {
+    try {
+      if (pathname === "/") {
+        const last = localStorage.getItem("lastPage");
+        if (!sessionStorage.getItem("nav") && last && last !== "/") {
+          router.replace(last);
+          return;
+        }
+      }
+      localStorage.setItem("lastPage", pathname);
+    } catch {}
+  }, [pathname, router]);
 
   useEffect(() => {
     setNow(Date.now());
@@ -559,6 +587,10 @@ export default function Profile({ config }: { config: ProfileConfig }) {
   const goOther = (e: React.MouseEvent) => {
     e.preventDefault();
     if (leaving) return;
+    // navigation interne volontaire → on ne re-redirige pas vers la dernière page
+    try {
+      sessionStorage.setItem("nav", "1");
+    } catch {}
     setLeaving(true);
     setTimeout(() => router.push(otherHref), 300);
   };

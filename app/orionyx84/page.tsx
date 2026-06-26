@@ -76,7 +76,7 @@ export default function Orionyx84() {
         subtitle: "Parcours NationsGlory White",
         theme: THEMES.blue,
         index: 2,
-        otherHref: "/",
+        otherHref: "/zltoa",
         sections: [
           { title: "Staff White", icon: "/logos/white.png", roles: staffRoles },
         ],
